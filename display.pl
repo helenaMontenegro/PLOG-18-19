@@ -13,11 +13,25 @@ initial_board([[n,n,n,n,5,n,n,n,n],
        [n,n,n,0,0,0,n,n,n], 
        [n,n,n,n,6,n,n,n,n]]).
 
+test_board1([[n,n,n,n,5,n,n,n,n],
+       [n,n,n,0,0,0,n,n,n],
+       [n,n,0,0,0,0,0,n,n],
+       [n,0,0,1,0,1,0,0,n],
+       [n,0,2,2,0,2,2,0,n],
+       [n,0,0,0,2,0,0,0,n],
+       [n,0,0,0,0,0,0,0,n], 
+       [n,0,0,0,2,0,0,0,n], 
+       [n,0,3,3,3,3,3,0,n], 
+       [n,0,0,4,0,4,0,0,n], 
+       [n,n,0,0,0,0,0,n,n],
+       [n,n,n,0,0,0,n,n,n], 
+       [n,n,n,n,6,n,n,n,n]]).
+
 /*Function that receives the Player and displays both the player and the initial board of the game.*/
 display_game(Player) :- initial_board(B), display_game(B, Player).
 
 /*Function that receives the Board and the Player to display.*/
-display_game(Board, Player) :- nl, nl, write('Player: '), write(Player), nl, nl, write('      '), write_letters('A'), nl, print_tab(Board, 0).
+display_game(Board, Player) :- sleep(1),nl, nl, write('Player: '), write(Player), nl, nl, write('      '), write_letters('A'), nl, print_tab(Board, 0).
 
 /*Recursive function that displays the letters (L) over the board, using their ASCII codes obtained through the char_code() function.
 The Base Case is when the letter is 'H' (in the original board the letters go from 'A' to 'G').*/

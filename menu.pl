@@ -49,15 +49,34 @@ readInputBotDifficulty(1) :-
     display_game(Board, '*'), !,
     game_loop(Board, 'P', 'C1').
 
+readInputBotDifficulty(2) :-
+    initial_board(Board),
+    display_game(Board, '*'), !,
+    game_loop(Board, 'P', 'C2').
+
 readInputBotDifficulty(1, 1) :-
     initial_board(Board),
     display_game(Board, '*'), !,
     game_loop(Board, 'C1', 'C1'),
     nl,write('returned'),nl.
 
-readInputBotDifficulty(2) :-
-   /*startGame medium*/
-   mainMenu.
+readInputBotDifficulty(1, 2) :-
+    initial_board(Board),
+    display_game(Board, '*'), !,
+    game_loop(Board, 'C1', 'C2'),
+    nl,write('returned'),nl.
+
+readInputBotDifficulty(2, 1) :-
+    initial_board(Board),
+    display_game(Board, '*'), !,
+    game_loop(Board, 'C2', 'C1'),
+    nl,write('returned'),nl.
+
+readInputBotDifficulty(2, 2) :-
+    initial_board(Board),
+    display_game(Board, '*'), !,
+    game_loop(Board, 'C2', 'C2'),
+    nl,write('returned'),nl.
 
 readInputBotDifficulty(_Input) :-
 	write('\nError: invalid input.\n\n'),

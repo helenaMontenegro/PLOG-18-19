@@ -73,36 +73,36 @@ game_over(Board, Player) :- enemy(Player, Opponent),
 /*Game loop that receives the initial board and the types of players ('C1', 'C2', 'C3' - computer, 'P' - player)*/
 game_loop(Board, TypeOfPlayer1, TypeOfPlayer2) :- 
     players_turn(Board, TypeOfPlayer1, '*', NewBoard), !,
+    display_game(NewBoard, '.'),!,
     \+game_over(NewBoard, '*'),
     players_turn(NewBoard, TypeOfPlayer2, '.', NewBoard2), !,
+    display_game(NewBoard2, '*'),!,
     \+game_over(NewBoard2, '.'),
     game_loop(NewBoard2, TypeOfPlayer1, TypeOfPlayer2).
 
-players_turn(Board, TypeOfPlayer, Player, NewBoard) :- TypeOfPlayer = 'P', 
+players_turn(Board, TypeOfPlayer, Player, NewBoard) :- TypeOfPlayer = 'P', !,
     readingInput(Board, OldLetter-OldNumber, NewLetter-NewNumber, Player),
     move(OldLetter-OldNumber-NewLetter-NewNumber, TypeOfPlayer, Player, Board, NewBoard).
 
 /*Function that decides the movement for the current's player turn. If the TypeOfPlayer is 'C1', it gets the movement from the easiest level of
 computing.*/
-players_turn(Board, TypeOfPlayer, Player, NewBoard) :- TypeOfPlayer = 'C1',
+players_turn(Board, TypeOfPlayer, Player, NewBoard) :- TypeOfPlayer = 'C1', !,
     choose_move(1, Player, Move, Board),
     move(Move, TypeOfPlayer, Player, Board, NewBoard).
 
-%players_turn(Board, TypeOfPlayer, Player, NewBoard) :- TypeOfPlayer = 'C2', ...
-
+players_turn(Board, TypeOfPlayer, Player, NewBoard) :- TypeOfPlayer = 'C2', !, 
+    choose_move(2, Player, Board, NewBoard).
 
 display(TypeOfPlayer, Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :- 
     check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, Board2), 
     has_enemies(Board2, Player, NewLetter-NewNumber), !,
-    display_game(Board2, Player), 
+    %display_game(Board2, Player), 
     players_turn(Board2, TypeOfPlayer, Player, NewBoard).
 
 display(_, Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :- 
-    check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard), !, 
-    enemy(Player, Opponent), display_game(NewBoard, Opponent).
+    check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard), !.
 
-display(_, Player, _, Board, NewBoard):- NewBoard=Board,
-    enemy(Player, Opponent), display_game(NewBoard, Opponent).
+display(_, Player, _, Board, NewBoard):- NewBoard=Board.
 
 /*Function that checks if pawn has jumped over enemy by checking if it jumped more than one cell and if the cell it jumped over was an enemy.*/
 /*Diagonally up-left*/
