@@ -93,10 +93,13 @@ players_turn(Board, TypeOfPlayer, Player, NewBoard) :- TypeOfPlayer = 'C1', !,
 players_turn(Board, TypeOfPlayer, Player, NewBoard) :- TypeOfPlayer = 'C2', !, 
     choose_move(2, Player, Board, NewBoard).
 
+display('C2', Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :- 
+    check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard), !.
+
 display(TypeOfPlayer, Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :- 
     check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, Board2), 
     has_enemies(Board2, Player, NewLetter-NewNumber), !,
-    %display_game(Board2, Player), 
+    display_game(Board2, Player), 
     players_turn(Board2, TypeOfPlayer, Player, NewBoard).
 
 display(_, Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :- 

@@ -31,7 +31,8 @@ test_board1([[n,n,n,n,5,n,n,n,n],
 display_game(Player) :- initial_board(B), display_game(B, Player).
 
 /*Function that receives the Board and the Player to display.*/
-display_game(Board, Player) :- sleep(1),nl, nl, write('Player: '), write(Player), nl, nl, write('      '), write_letters('A'), nl, print_tab(Board, 0).
+display_game(Board, Player) :- sleep(1), nl, nl, write('Player: '), write(Player), 
+    nl, nl, write('      '), write_letters('A'), nl, print_tab(Board, 0).
 
 /*Recursive function that displays the letters (L) over the board, using their ASCII codes obtained through the char_code() function.
 The Base Case is when the letter is 'H' (in the original board the letters go from 'A' to 'G').*/
