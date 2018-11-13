@@ -103,7 +103,7 @@ distance_pawns2(Player, [CellLetter-CellNumber|T], AverageDistance, Aux, Counter
     letters_to_numbers(CellLetter, CellN),
     Distance is abs(CNumber-CellN) + abs(CastleNumber-CellNumber),
     Aux2 is Aux+Distance, C is Counter+1,
-    distance_pawns(Player, T, AverageDistance, Aux2, C).
+    distance_pawns2(Player, T, AverageDistance, Aux2, C).
 
 /*Function that compares the distances in BestDistanceBefore and CurrentDistance and saves it in NewBestDistance. It also saves
 the corresponding pawn.*/
