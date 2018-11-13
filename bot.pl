@@ -43,8 +43,9 @@ c_enemies(SBoard, _, _, NewBoard):-
 /*Function that evaluates a board. It receives the player and the board to evaluate and returns a value.*/
 value(Board, Player, Value) :- get_pawns(Board, Player, ListOfPawns), 
     distance_pawns(Player, BestPawn, Aux2, 12, BestDistance, ListOfPawns),
+    distance_pawns2(Player, ListOfPawns, AverageDistance, 0, 0),
     check_enemy_adjacent_recursive(Player, Board, ListOfPawns, V),
-    Value is (12-BestDistance)*8.3+V.
+    Value is (12-AverageDistance)*8.3*0.5 + (12-BestDistance)*8.3*0.5+V.
 
 /*Function that checks if there are enemies in adjacent cells to the Player's pawns, in order to aid in the evaluation function.*/
 check_enemy_adjacent_recursive(_, _, [], Value) :- Value is 0.
@@ -94,6 +95,16 @@ distance_pawns(Player, BestPawn, BestPawnBefore, BestDistanceBefore, BestDistanc
     save_best_distance(BestDistanceBefore, NewBestDistance, Distance, NewBestPawn,BestPawnBefore, CellLetter-CellNumber),
     distance_pawns(Player, BestPawn, NewBestPawn, NewBestDistance, BestDistance, T).
 
+distance_pawns2(_, [], AverageDistance, Aux, Counter) :- AverageDistance is Aux/Counter.
+distance_pawns2(Player, [CellLetter-CellNumber|T], AverageDistance, Aux, Counter) :- 
+    enemy(Player, Opponent),
+    castle(Opponent, CastleLetter-CastleNumber), 
+    letters_to_numbers(CastleLetter, CNumber),
+    letters_to_numbers(CellLetter, CellN),
+    Distance is abs(CNumber-CellN) + abs(CastleNumber-CellNumber),
+    Aux2 is Aux+Distance, C is Counter+1,
+    distance_pawns(Player, T, AverageDistance, Aux2, C).
+
 /*Function that compares the distances in BestDistanceBefore and CurrentDistance and saves it in NewBestDistance. It also saves
 the corresponding pawn.*/
 save_best_distance(BestDistanceBefore, NewBestDistance, CurrentDistance, NewBestPawn,BestPawnBefore, Pawn) :-
@@ -111,6 +122,7 @@ generate_boards(Board, Player, [H|T], [H1|T1]):-
     move(H, 'C2', Player, Board, NewBoard),
     value(NewBoard, Player, Value), !,
     H1 = NewBoard-Value,
+    %write('!!!!!!!!'), nl, display_game(NewBoard, Player), write('Value = '), write(Value), nl,
     generate_boards(Board, Player, T, T1).
 
 /* check_value(ListOfBoards, BestBoard, AuxBoard, BestValue, AuxValue, Counter, AuxCounter, AuxCounter2)
