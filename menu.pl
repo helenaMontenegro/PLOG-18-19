@@ -3,7 +3,6 @@ mainMenu :-
 	read(Input),
 	analiseInput(Input).
 
-
 /*startGame player Vs player*/
 analiseInput(1) :-
    initial_board(Board),
@@ -15,20 +14,24 @@ analiseInput(2) :-
 	read(Input),
 	readInputBotDifficulty(Input).
 
-
 analiseInput(3) :-
+    write('Choose difficulty of Bot(1-> Beginner, 2-> Professional) :'),nl,
+	read(Input),
+	readInputBotDifficulty(Input,'P').
+
+analiseInput(4) :-
     write('Choose difficulty of first Bot (1-> Beginner  2-> Professional) :'),nl,
 	read(FirstDiff),
 	write('Choose difficulty of second Bot (1-> Beginner  2-> Professional) :'),nl,
 	read(SecondDiff), !,
 	readInputBotDifficulty(FirstDiff, SecondDiff), nl, write('end of 3'), nl.
 
-analiseInput(4) :-
+analiseInput(5) :-
     printHowToPlayMenu,
     read(InputHowToPlay),
     analiseHowToPlayInput(InputHowToPlay).
 
-analiseInput(5) :-
+analiseInput(6) :-
     write('\nExiting...\n\n').
 
 analiseInput(_Input) :-
@@ -44,15 +47,25 @@ analiseHowToPlayInput(_Input) :-
     printHowToPlayMenu.
 
 /*startGame Beginner*/
-readInputBotDifficulty(1) :-
+readInputBotDifficulty(1,'P') :-
     initial_board(Board),
     display_game(Board, '*'), !,
     game_loop(Board, 'P', 'C1').
 
-readInputBotDifficulty(2) :-
+readInputBotDifficulty(2,'P') :-
     initial_board(Board),
     display_game(Board, '*'), !,
     game_loop(Board, 'P', 'C2').
+
+readInputBotDifficulty(2) :-
+    initial_board(Board),
+    display_game(Board, '*'), !,
+    game_loop(Board, 'C2', 'P').
+
+readInputBotDifficulty(1) :-
+    initial_board(Board),
+    display_game(Board, '*'), !,
+    game_loop(Board, 'C1', 'P').
 
 readInputBotDifficulty(1, 1) :-
     initial_board(Board),
@@ -100,19 +113,19 @@ printMainMenu :- nl,
     write('        |                             --Juliana Marques--                             |'),nl,
     write('        |                                                                             |'),nl,
     write('        |                                                                             |'),nl,
-    write('        |                                                                             |'),nl,
     write('        |                        1.Start Game Player vs Player                        |'),nl,
     write('        |                                                                             |'),nl,
     write('        |                           2.Start Game PC vs Player                         |'),nl,
     write('        |                                                                             |'),nl,
-	write('        |                             3.Start Game PC vs PC                           |'),nl,
+	write('        |                           3.Start Game Player vs Pc                         |'),nl,
 	write('        |                                                                             |'),nl,
-	write('        |                               4.How to Play                                 |'),nl,
+    write('        |                             4.Start Game PC vs PC                           |'),nl,
+    write('        |                                                                             |'),nl,
+	write('        |                               5.How to Play                                 |'),nl,
 	write('        |                                                                             |'),nl,
-	write('        |                                   5.Exit                                    |'),nl,
+	write('        |                                   6.Exit                                    |'),nl,
 	write('        |                                                                             |'),nl,
-	write('        |                                                                             |'),nl,
-	write('        |                                                                             |'),nl,
+    write('        |                                                                             |'),nl,
 	write('        |                                                                             |'),nl,
 	write('        |                             Choose an option...                             |'),nl,
 	write('        |-----------------------------------------------------------------------------|'),nl,
