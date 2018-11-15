@@ -8,7 +8,7 @@ choose_move(Difficulty, Player, Move, Board) :- Difficulty = 1,
 choose_move(Difficulty, Player, Board, NewBoard) :- Difficulty = 2,
     valid_moves(Board, Player, ListOfMoves),
     generate_boards(Board, Player, ListOfMoves, ListOfBoards),
-    check_value(ListOfBoards, Board2, AuxBoard, BestValue, -100, Counter, 0, 0),
+    check_value(ListOfBoards, Board2, _AuxBoard, _BestValue, -100, Counter, 0, 0),
     nth0(Counter, ListOfMoves, Move),
     check_enemies_c2(Player, Move, Board, Board2, NewBoard).
 
@@ -26,7 +26,7 @@ check_enemies_c2(Player, OldLetter-OldNumber-NewLetter-NewNumber, InitialBoard, 
 Function that checks if the moving pawn has jumped over enemies in order to check if there are other enemies to jump over, 
 resulting in the current player playing again. If there was no jump over enemy, the FinalBoard is returned.*/
 check_if_same_turn(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board2, SBoard, NewBoard) :-
-    check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board2, B), !,
+    check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board2, _), !,
     c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard).
 check_if_same_turn(_, _, _, SBoard, NewBoard) :- NewBoard=SBoard.
 
@@ -42,7 +42,7 @@ c_enemies(SBoard, _, _, NewBoard):-
 
 /*Function that evaluates a board. It receives the player and the board to evaluate and returns a value.*/
 value(Board, Player, Value) :- get_pawns(Board, Player, ListOfPawns), 
-    distance_pawns(Player, BestPawn, Aux2, 12, BestDistance, ListOfPawns),
+    distance_pawns(Player, _BestPawn, _Aux2, 12, BestDistance, ListOfPawns),
     distance_pawns2(Player, ListOfPawns, AverageDistance, 0, 0),
     check_enemy_adjacent_recursive(Player, Board, ListOfPawns, V),
     Value is (12-AverageDistance)*8.3*0.5 + (12-BestDistance)*8.3*0.5+V.
@@ -53,14 +53,14 @@ check_enemy_adjacent_recursive(Player, Board, [H|T], Value) :-
     adjacent_cells(H, AdjList),
     check_enemy_adjacent(Player, Board, H, AdjList, V),
     V=0, !,check_enemy_adjacent_recursive(Player, Board, T, Value).
-check_enemy_adjacent_recursive(_, Board, _, Value) :- Value is -50.
+check_enemy_adjacent_recursive(_, _, _, Value) :- Value is -50.
 
 /*Function that checks if there are enemies in adjacent cells to one pawn, in order to aid in the evaluation function.*/
 check_enemy_adjacent(_, _, _, [], Value) :- Value is 0, !.
-check_enemy_adjacent(Player, Board, Letter-Number, [L-N|T], Value) :- 
+check_enemy_adjacent(Player, Board, Letter-Number, [L-N|_], Value) :- 
     check_board(Board, Symbol, L-N),
     analyze_symbol(Board, Player, Symbol, Letter-Number, L-N, Value), !.
-check_enemy_adjacent(Player, Board, Letter-Number, [L-N|T], Value) :- 
+check_enemy_adjacent(Player, Board, Letter-Number, [_|T], Value) :- 
     check_enemy_adjacent(Player, Board, Letter-Number, T, Value), !.
 
 /*Function that checks if there is an enemy on cell:L-N, that can move over the Pawn in the cell: Letter-Number and returns a negative value
@@ -76,13 +76,13 @@ get_opposed_cell_letter(OpLetter, Letter, L) :- Letter=L, !, OpLetter=L.
 get_opposed_cell_letter(OpLetter, Letter, L) :- 
     char_code(Letter, Num1), char_code(L, Num2), Num1 > Num2, !, 
     N is Num1+1, char_code(OpLetter, N).
-get_opposed_cell_letter(OpLetter, Letter, L) :- 
+get_opposed_cell_letter(OpLetter, Letter, _) :- 
     char_code(Letter, Num1), N is Num1-1, char_code(OpLetter, N).
 
 /*Function to get the opposing letter of a cell, returning it in OpNumber.*/
 get_opposed_cell_number(OpNumber, Number, N) :- Number=N, !, OpNumber = N.
 get_opposed_cell_number(OpNumber, Number, N) :- Number>N, !, OpNumber is Number+1.
-get_opposed_cell_number(OpNumber, Number, N) :- OpNumber is Number-1.
+get_opposed_cell_number(OpNumber, Number, _) :- OpNumber is Number-1.
 
 /*Function that calculates the Pawn which is positioned in the cell closest to the enemy's castle.*/
 distance_pawns(_, BestPawn, BestPawnBefore, BestDistanceBefore, BestDistance, []) :- BestDistance=BestDistanceBefore, BestPawn=BestPawnBefore.
@@ -107,7 +107,7 @@ distance_pawns2(Player, [CellLetter-CellNumber|T], AverageDistance, Aux, Counter
 
 /*Function that compares the distances in BestDistanceBefore and CurrentDistance and saves it in NewBestDistance. It also saves
 the corresponding pawn.*/
-save_best_distance(BestDistanceBefore, NewBestDistance, CurrentDistance, NewBestPawn,BestPawnBefore, Pawn) :-
+save_best_distance(BestDistanceBefore, NewBestDistance, CurrentDistance, NewBestPawn, _, Pawn) :-
     BestDistanceBefore > CurrentDistance, !, NewBestDistance = CurrentDistance, NewBestPawn = Pawn.
 save_best_distance(BestDistanceBefore,NewBestDistance,_,NewBestPawn, BestPawnBefore,_) :- 
     NewBestDistance = BestDistanceBefore, 
@@ -128,7 +128,7 @@ generate_boards(Board, Player, [H|T], [H1|T1]):-
 Function that selects the best BestBoard, which has the highest value (BestValue). It needs a Counter to know which move originated the board
 and a few auxiliary variables.*/
 check_value([], BestBoard, AuxBoard, BestValue, AuxValue, Counter, _, AuxCounter2):- BestBoard=AuxBoard, BestValue=AuxValue, Counter=AuxCounter2.
-check_value([Board-Value|T], BestBoard, AuxBoard, BestValue, AuxValue, Counter, AuxCounter, AuxCounter2) :- AuxValue < Value, !, 
+check_value([Board-Value|T], BestBoard, _, BestValue, AuxValue, Counter, AuxCounter, _) :- AuxValue < Value, !, 
     AuxSaveBoard = Board, 
     AuxSaveValue = Value,
     A=AuxCounter,

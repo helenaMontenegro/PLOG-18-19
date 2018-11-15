@@ -47,8 +47,8 @@ check_adjacents(Board, Player, Letter-Number, [L-N|T], Moves, Aux1, Enemies, Aux
     check_board(Board, Symbol, L-N), 
     check_symbol(Board, Player, Symbol, Letter-Number, L-N, Aux1, Aux11, Aux2, Aux22, Aux3, Aux33),
     check_adjacents(Board, Player, Letter-Number,T, Moves, Aux11, Enemies, Aux22, Friends, Aux33).
-check_adjacents(Board, Player, Letter-Number, [L-N|T], Moves, Aux1, Enemies, Aux2, Friends, Aux3) :- 
-    check_adjacents(Board, Player, Letter-Number,T, Moves, Aux1, Enemies, Aux2, Friends, Aux3).
+check_adjacents(Board, Player, Letter-Number, [_|T], Moves, Aux1, Enemies, Aux2, Friends, Aux3) :- 
+    check_adjacents(Board, Player, Letter-Number, T, Moves, Aux1, Enemies, Aux2, Friends, Aux3).
 
 /*Function that moves a pawn, if possible, and changes the board accordingly. It receives the cell in which the pawn is and to which the pawn
 will go, the TypeOfPlayer that is playing (Player or Computer), the Player and the current Board and it returns the new board.*/
@@ -112,13 +112,13 @@ checkNewCell(ReadCell, CurCell, OldCell, NewCell, Board, Player) :-
     checkNewCell(NCell, CurCell, OldCell, NewCell, Board, Player).
 /*Checks if the movement is valid.*/
 checkNewCell(ReadL-ReadN, CurCell, OldCell, NewCell, Board, Player) :-
-    a(ReadL-ReadN, CurCell, OldCell, NewCell, Board, Player), !, write('You can\'t move to that cell!'),
+    check_if_not_friend(ReadL-ReadN, CurCell, OldCell, NewCell, Board, Player), !, write('You can\'t move to that cell!'),
     readNewCell(NCell),
     checkNewCell(NCell, CurCell, OldCell, NewCell, Board, Player).
 checkNewCell(NCell, _, _, NewCell, _, _):- NewCell = NCell.
 
 /*Auxiliary function to checkNewCell, that checks if the cell selected as input corresponds to a cell reached after a jump over a friend.*/
-check_if_not_friend(ReadL-ReadN, CurCell, OldCell, NewCell, Board, Player) :- 
+check_if_not_friend(ReadL-ReadN, CurCell, _, _, Board, Player) :- 
     check_pawns(Board, Player, [CurCell], _, [], _, [], Friends, []), !, 
     \+ member(CurCell-ReadL-ReadN, Friends).
 
@@ -155,26 +155,26 @@ display(_, Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :-
     check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard), !.
 
 display('P', Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :-
-    check_jump(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board),
+    check_jump(OldLetter-OldNumber-NewLetter-NewNumber),
     has_friends(Board, Player, NewLetter-NewNumber), !,
     readInputJumpStay(Input), !, analyze_input(Board, Player, Input, NewBoard, OldLetter-OldNumber-NewLetter-NewNumber).
 
 /*When the Player is a Computer and it has friends to jump over, after jumping over a friend, it jumps over the friend.*/
 display('C1', Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :-
-    check_jump(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board),
+    check_jump(OldLetter-OldNumber-NewLetter-NewNumber),
     has_friends(Board, Player, NewLetter-NewNumber), !,
     display_game(Board, Player), 
     check_pawns(Board, Player, [NewLetter-NewNumber], _, [], _, [], Friends, []),
     delete(Friends, NewLetter-NewNumber-OldLetter-OldNumber, List),
     nth0(0, List, Move),
-    move(Move, TypeOfPlayer, Player, Board, NewBoard).
+    move(Move, 'C1', Player, Board, NewBoard).
 
-display(_, Player, _, Board, NewBoard):- NewBoard=Board.
+display(_, _, _, Board, NewBoard):- NewBoard=Board.
 
-check_jump(Player, OldL-OldN-NewL-NewN, Board) :- NewN is OldN+2.
-check_jump(Player, OldL-OldN-NewL-NewN, Board) :- NewN is OldN-2.
-check_jump(Player, OldL-OldN-NewL-NewN, Board) :- char_code(OldL, N1), char_code(NewL, N2), N2 is N1+2.
-check_jump(Player, OldL-OldN-NewL-NewN, Board) :- char_code(OldL, N1), char_code(NewL, N2), N2 is N1-2.
+check_jump(_-OldN-_-NewN) :- NewN is OldN+2.
+check_jump(_-OldN-_-NewN) :- NewN is OldN-2.
+check_jump(OldL-_-NewL-_) :- char_code(OldL, N1), char_code(NewL, N2), N2 is N1+2.
+check_jump(OldL-_-NewL-_) :- char_code(OldL, N1), char_code(NewL, N2), N2 is N1-2.
 
 /*Function that checks if pawn has jumped over enemy by checking if it jumped more than one cell and if the cell it jumped over was an enemy.*/
 /*Diagonally up-left*/
@@ -206,29 +206,29 @@ check_jump_over_enemy(Player, Letter-Number-NewLetter-NewNumber, Board, NewBoard
     players_pieces(Opponent, Symbol), change_board(Board, 0, L-N, NewBoard),!.
 
 /*Up*/
-check_jump_over_enemy(Player, Letter-Number-NewLetter-NewNumber, Board, NewBoard) :-
-    Num is Number-NewNumber, char_code(Letter, AsciiLetter), char_code(NewLetter, AsciiNewLetter),
-    NumLetter is AsciiLetter-AsciiNewLetter, Num>1, N is NewNumber+1, 
+check_jump_over_enemy(Player, Letter-Number-_-NewNumber, Board, NewBoard) :-
+    Num is Number-NewNumber,
+    Num>1, N is NewNumber+1, 
     check_board(Board, Symbol, Letter-N), enemy(Player, Opponent),
     players_pieces(Opponent, Symbol), change_board(Board, 0, Letter-N, NewBoard),!.
 
 /*Down*/
-check_jump_over_enemy(Player, Letter-Number-NewLetter-NewNumber, Board, NewBoard) :-
-    Num is Number-NewNumber, char_code(Letter, AsciiLetter), char_code(NewLetter, AsciiNewLetter),
-    NumLetter is AsciiLetter-AsciiNewLetter, Num<0-1, N is NewNumber-1, 
+check_jump_over_enemy(Player, Letter-Number-_-NewNumber, Board, NewBoard) :-
+    Num is Number-NewNumber,
+    Num<0-1, N is NewNumber-1, 
     check_board(Board, Symbol, Letter-N), enemy(Player, Opponent),
     players_pieces(Opponent, Symbol), change_board(Board, 0, Letter-N, NewBoard),!.
 
 /*Right*/
-check_jump_over_enemy(Player, Letter-Number-NewLetter-NewNumber, Board, NewBoard) :-
-    Num is Number-NewNumber, char_code(Letter, AsciiLetter), char_code(NewLetter, AsciiNewLetter),
+check_jump_over_enemy(Player, Letter-Number-NewLetter-_, Board, NewBoard) :-
+    char_code(Letter, AsciiLetter), char_code(NewLetter, AsciiNewLetter),
     NumLetter is AsciiLetter-AsciiNewLetter, NumLetter<0-1, NumL is AsciiNewLetter-1,
     char_code(L, NumL), check_board(Board, Symbol, L-Number), enemy(Player, Opponent),
     players_pieces(Opponent, Symbol), change_board(Board, 0, L-Number, NewBoard),!.
 
 /*Left*/
-check_jump_over_enemy(Player, Letter-Number-NewLetter-NewNumber, Board, NewBoard) :-
-    Num is Number-NewNumber, char_code(Letter, AsciiLetter), char_code(NewLetter, AsciiNewLetter),
+check_jump_over_enemy(Player, Letter-Number-NewLetter-_, Board, NewBoard) :-
+    char_code(Letter, AsciiLetter), char_code(NewLetter, AsciiNewLetter),
     NumLetter is AsciiLetter-AsciiNewLetter, NumLetter>1, NumL is AsciiNewLetter+1,
     char_code(L, NumL), check_board(Board, Symbol, L-Number), enemy(Player, Opponent),
     players_pieces(Opponent, Symbol), change_board(Board, 0, L-Number, NewBoard),!.

@@ -39,8 +39,8 @@ change_board(OldBoard, Symbol, Letter-Number, NewBoard) :-
 
 /*Function that accesses the Board[NumVert][NumHori] and puts there the Symbol, return the changes in NewBoard.*/
 access_to_change_board(Board, Symbol, NumHori, NumVert, NewBoard) :- access_list(NumVert, 0,  Board, List), 
-                                                                        access_to_change_list(NumHori, 0, List, Symbol, AuxList, NewList),
-                                                                        access_to_change_list(NumVert, 0, Board, NewList, AuxBoard, NewBoard).
+                                                                        access_to_change_list(NumHori, 0, List, Symbol, _AuxList, NewList),
+                                                                        access_to_change_list(NumVert, 0, Board, NewList, _AuxBoard, NewBoard).
 
 /* access_to_change_list(Index, Counter, List, Symbol, AuxiliaryList, NewList)
 Function that changes the element of the list with index=Index to the specified Symbol and returns it in NewList. AuxiliaryList is used
@@ -79,7 +79,7 @@ search_board([], _, _, List, AuxList) :- List = AuxList.
 search_board([H|T], Pawn, Number, List, AuxList) :- member(Pawn, H), char_code('A', Num), AuxNum is Num-1, 
                                                 search_pawn(H, Pawn, Number, AuxNum, L, []), append(AuxList, L, Aux), N is Number+1, 
                                                 search_board(T, Pawn, N, List, Aux).
-search_board([H|T], Pawn, Number, List, AuxList) :- Num is Number+1, search_board(T, Pawn, Num, List, AuxList).
+search_board([_|T], Pawn, Number, List, AuxList) :- Num is Number+1, search_board(T, Pawn, Num, List, AuxList).
 
 /*Recursive function to search the wanted Pawn in a line of the board, starting in the index Num and, returning in List the List with the Letter 
 of the cells that hold the pawn.

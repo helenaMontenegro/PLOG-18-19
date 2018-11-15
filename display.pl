@@ -12,21 +12,7 @@ initial_board([[n,n,n,n,5,n,n,n,n],
        [n,n,0,0,0,0,0,n,n],
        [n,n,n,0,0,0,n,n,n], 
        [n,n,n,n,6,n,n,n,n]]).
-
-iniial_board([[n,n,n,n,5,n,n,n,n],
-       [n,n,n,0,0,0,n,n,n],
-       [n,n,0,0,0,0,0,n,n],
-       [n,0,0,1,0,1,0,0,n],
-       [n,0,2,2,0,2,2,0,n],
-       [n,0,0,0,2,0,0,0,n],
-       [n,0,0,0,0,0,0,0,n], 
-       [n,0,0,0,3,0,0,0,n], 
-       [n,0,3,0,3,3,3,0,n], 
-       [n,0,0,4,0,4,0,0,n], 
-       [n,n,0,0,0,0,0,n,n],
-       [n,n,n,0,0,0,n,n,n], 
-       [n,n,n,n,6,n,n,n,n]]).
-
+       
 /*Function that receives the Player and displays both the player and the initial board of the game.*/
 display_game(Player) :- initial_board(B), display_game(B, Player).
 
@@ -58,7 +44,7 @@ print_sep([], _Aux).
 print_sep([C|L], Aux) :- C=n, Aux>=10, L=[X|_], X\=n, write(' -------'), print_sep(L, Aux).
 print_sep([C|L], Aux) :- C=n, L=[X|_], X\=n, write('    -'), print_sep(L, Aux).
 print_sep([C|L], Aux) :- C=n, write('   '), print_sep(L, Aux).
-print_sep([C|L], Aux) :- write('---'), print_sep(L, Aux).
+print_sep([_|L], Aux) :- write('---'), print_sep(L, Aux).
 
 /*Recursive function that recieves a line of the board and prints it cell by cell. Base Case: when the list is empty.*/
 print_line([]).
