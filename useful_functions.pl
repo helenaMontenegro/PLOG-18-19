@@ -32,9 +32,10 @@ adjacent_cells(Letter-Number, List) :- char_code(Letter, Aux), AuxB is Aux-1, ch
                                                 LetterA-NumB, LetterA-Number, LetterA-NumA].
 
 /*Function that returns in NewBoard the Board with the change in symbol for the cell Letter-Number. */
-change_board(OldBoard, Symbol, Letter-Number, NewBoard) :- Number =< 13, char_code(Letter, Num), get_char_code_A_G(NumA, NumG), 
-                                                        Num >= NumA, Num=<NumG, N is Num-NumA+1, N2 is Number-1,
-                                                        access_to_change_board(OldBoard, Symbol, N, N2, NewBoard).
+change_board(OldBoard, Symbol, Letter-Number, NewBoard) :- 
+        Number =< 13, char_code(Letter, Num), get_char_code_A_G(NumA, NumG), 
+        Num >= NumA, Num=<NumG, N is Num-NumA+1, N2 is Number-1,
+        access_to_change_board(OldBoard, Symbol, N, N2, NewBoard).
 
 /*Function that accesses the Board[NumVert][NumHori] and puts there the Symbol, return the changes in NewBoard.*/
 access_to_change_board(Board, Symbol, NumHori, NumVert, NewBoard) :- access_list(NumVert, 0,  Board, List), 

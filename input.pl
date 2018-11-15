@@ -23,6 +23,21 @@ readNewCell(NewLetter-NewNumber):-
 	nl,
 	read(NewLetter-NewNumber).
 
+/*In case there are friends to jump over, asks if the player wants to jump or stay.*/
+readInputJumpStay(NewInput) :-
+	nl,
+	write('You still have friends to jump over, do you want to jump (1) or pass your turn (2)?'),
+	nl,
+	read(Input),
+	validInputJumpStay(Input, NewInput).
+
+validInputJumpStay(Input, NewInput) :-
+	Input \= 1,
+	Input \= 2,
+	nl, write('Invalid Input.'), nl,
+	readInputJumpStay(NewInput).
+validInputJumpStay(Input, NewInput) :- NewInput=Input.
+
 /*Function to check if the first cell (OldCell) asked has a pawn of the current player in it.*/
 validateInputOldCell(Board, OldLetter-OldNumber, Player):-
 	check_board(Board, Symbol, OldLetter-OldNumber),

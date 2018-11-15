@@ -24,7 +24,7 @@ analiseInput(4) :-
 	read(FirstDiff),
 	write('Choose difficulty of second Bot (1-> Beginner  2-> Professional) :'),nl,
 	read(SecondDiff), !,
-	readInputBotDifficulty(FirstDiff, SecondDiff), nl, write('end of 3'), nl.
+	readInputBotDifficulty(FirstDiff, SecondDiff), nl.
 
 analiseInput(5) :-
     printHowToPlayMenu,
