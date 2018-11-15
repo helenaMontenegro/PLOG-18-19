@@ -53,7 +53,7 @@ check_enemy_adjacent_recursive(Player, Board, [H|T], Value) :-
     adjacent_cells(H, AdjList),
     check_enemy_adjacent(Player, Board, H, AdjList, V),
     V=0, !,check_enemy_adjacent_recursive(Player, Board, T, Value).
-check_enemy_adjacent_recursive(_, _, _, Value) :- Value is -50.
+check_enemy_adjacent_recursive(_, Board, _, Value) :- Value is -50.
 
 /*Function that checks if there are enemies in adjacent cells to one pawn, in order to aid in the evaluation function.*/
 check_enemy_adjacent(_, _, _, [], Value) :- Value is 0, !.
@@ -69,15 +69,15 @@ analyze_symbol(Board, Player, Symbol, Letter-Number, L-N, Value) :- enemy(Player
     players_pieces(Opponent, Symbol),
     get_opposed_cell_letter(OpL, Letter, L),
     get_opposed_cell_number(OpN, Number, N),
-    check_board(Board, 0, OpL-OpN), !, Value is -50. 
+    check_board(Board, S, OpL-OpN), S=0,!, Value is -50. 
 
 /*Function to get the opposing letter of a cell, returning it in OpLetter.*/
 get_opposed_cell_letter(OpLetter, Letter, L) :- Letter=L, !, OpLetter=L.
 get_opposed_cell_letter(OpLetter, Letter, L) :- 
     char_code(Letter, Num1), char_code(L, Num2), Num1 > Num2, !, 
-    N is Num1+1, char_code(L, N).
+    N is Num1+1, char_code(OpLetter, N).
 get_opposed_cell_letter(OpLetter, Letter, L) :- 
-    char_code(Letter, Num1), char_code(L, Num2), N is Num1-1, char_code(L, N).
+    char_code(Letter, Num1), N is Num1-1, char_code(OpLetter, N).
 
 /*Function to get the opposing letter of a cell, returning it in OpNumber.*/
 get_opposed_cell_number(OpNumber, Number, N) :- Number=N, !, OpNumber = N.
@@ -122,7 +122,6 @@ generate_boards(Board, Player, [H|T], [H1|T1]):-
     move(H, 'C2', Player, Board, NewBoard),
     value(NewBoard, Player, Value), !,
     H1 = NewBoard-Value,
-    %write('!!!!!!!!'), nl, display_game(NewBoard, Player), write('Value = '), write(Value), nl,
     generate_boards(Board, Player, T, T1).
 
 /* check_value(ListOfBoards, BestBoard, AuxBoard, BestValue, AuxValue, Counter, AuxCounter, AuxCounter2)

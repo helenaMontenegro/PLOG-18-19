@@ -10,4 +10,4 @@
 :- use_module(library(lists)).
 :- use_module(library(system)).
 
-cam :- mainMenu.
+play :- mainMenu.
