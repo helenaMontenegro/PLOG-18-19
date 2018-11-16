@@ -27,25 +27,25 @@ Function that checks if the moving pawn has jumped over enemies in order to chec
 resulting in the current player playing again. If there was no jump over enemy, the FinalBoard is returned.*/
 check_if_same_turn(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board2, SBoard, NewBoard) :- 
     check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board2, _), !,
-    c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard, 0).
+    c_enemies(SBoard, Player, NewLetter-NewNumber-OldLetter-OldNumber, NewBoard, 0).
 check_if_same_turn(Player, OldLetter-OldNumber-NewLetter-NewNumber, _, SBoard, NewBoard) :- 
     check_if_knight_jumped(SBoard, OldLetter-OldNumber-NewLetter-NewNumber, Player), !,
-    c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard, 1).
+    c_enemies(SBoard, Player, NewLetter-NewNumber-OldLetter-OldNumber, NewBoard, 1).
 check_if_same_turn(Player, OldLetter-OldNumber-NewLetter-NewNumber, _, SBoard, NewBoard) :-
     check_jump(OldLetter-OldNumber-NewLetter-NewNumber), !,
-    c_friends(SBoard, Player, NewLetter-NewNumber, NewBoard, 1).
+    c_friends(SBoard, Player, NewLetter-NewNumber-OldLetter-OldNumber, NewBoard, 1).
 check_if_same_turn(_, _, _, SBoard, NewBoard) :- NewBoard=SBoard.
 
 /*c_enemies(BoardAfterRound1, Player, Cell, NewBoard)
 Function that calls the current player's turn again, after checking if it's, in fact, it's turn. It returns the NewBoard generated from
 that turn and receives the current board (BoardAfterRound1), the Player and the Cell where the pawn that just moved is.*/
-c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard, _):-
+c_enemies(SBoard, Player, NewLetter-NewNumber-_-_, NewBoard, _):-
     has_enemies(SBoard, Player, NewLetter-NewNumber), !,
     display_game(SBoard, Player), 
     players_turn(SBoard, 'C2', Player, NewBoard).
-c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard, OverEnemies) :- 
+c_enemies(SBoard, Player, NewLetter-NewNumber-OldLetter-OldNumber, NewBoard, OverEnemies) :- 
     check_if_knight(SBoard, NewLetter-NewNumber, Player),!,
-    c_friends(SBoard, Player, NewLetter-NewNumber, NewBoard, OverEnemies).
+    c_friends(SBoard, Player, NewLetter-NewNumber-OldLetter-OldNumber, NewBoard, OverEnemies).
 c_enemies(SBoard, _, _, NewBoard, _) :- 
     NewBoard=SBoard.
 
@@ -60,16 +60,23 @@ friends to jump over. It returns the NewBoard generated from that turn and recei
 the Player and the Cell where the pawn that just moved is. Len is either 0 or 1. If Len=0, the pawn is a knight who jumped over an enemy
 and the program checks if there are any movements to jump over a friend. If Len=1, the pawn jumped over a friend, so the program checks 
 if there are any friends other than that one, to jump over.*/
-c_friends(SBoard, Player, NewLetter-NewNumber, NewBoard, Len):-
+c_friends(SBoard, Player, NewLetter-NewNumber-OldLetter-OldNumber, NewBoard, Len):-
     has_friends(SBoard, Player, NewLetter-NewNumber, Len), !,
     display_game(SBoard, Player), 
     check_pawns(SBoard, Player, [NewLetter-NewNumber], _, [], _, [], Friends, []),
     generate_boards_friends(SBoard, Player, Friends, ListOfBoards),
     check_value(ListOfBoards, Board2, _AuxBoard, _BestValue, -100, Counter, 0, 0),
-    nth0(Counter, Friends, Move),
+    del(Friends, Len, NewLetter-NewNumber-OldLetter-OldNumber, NewFriends),
+    nth0(Counter, NewFriends, Move),
     check_enemies_c2(Player, Move, SBoard, Board2, NewBoard).
 c_friends(SBoard, _, _, NewBoard, _):- 
     NewBoard=SBoard.
+
+/*Function to delete from list of jumps over friends the movement NewLetter-NewNumber-OldLetter-OldNumber, so that if a pawn has jumped over
+a friend to get to the new cell, it can't move back to the original cell.*/
+del(Friends, Len, NewLetter-NewNumber-OldLetter-OldNumber, NewFriends) :-
+    Len=1, !, delete(Friends, NewLetter-NewNumber-OldLetter-OldNumber, NewFriends).
+del(Friends, _, _, NewFriends) :- NewFriends = Friends.
 
 /*Function that evaluates a board. It receives the player and the board to evaluate and returns a value.*/
 value(Board, Player, Value) :- get_pawns(Board, Player, ListOfPawns), 
