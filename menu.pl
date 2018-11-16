@@ -1,6 +1,6 @@
 mainMenu :-
 	printMainMenu,
-	read(Input),
+	read(Input), !,
 	analiseInput(Input).
 
 /*startGame player Vs player*/
@@ -11,12 +11,12 @@ analiseInput(1) :-
 
 analiseInput(2) :-
     write('Choose difficulty of Bot(1-> Beginner, 2-> Professional) :'),nl,
-	read(Input),
+	read(Input), !,
 	readInputBotDifficulty(Input).
 
 analiseInput(3) :-
     write('Choose difficulty of Bot(1-> Beginner, 2-> Professional) :'),nl,
-	read(Input),
+	read(Input), !,
 	readInputBotDifficulty(Input,'P').
 
 analiseInput(4) :-
@@ -28,14 +28,14 @@ analiseInput(4) :-
 
 analiseInput(5) :-
     printHowToPlayMenu,
-    read(InputHowToPlay),
+    read(InputHowToPlay), !,
     analiseHowToPlayInput(InputHowToPlay).
 
 analiseInput(6) :-
     write('\nExiting...\n\n').
 
 analiseInput(_Input) :-
-    write('\nError: that option does not exist.\n\n'),
+    write('\nError: that option does not exist.\n\n'), !,
     mainMenu.
 
 
@@ -70,29 +70,25 @@ readInputBotDifficulty(1) :-
 readInputBotDifficulty(1, 1) :-
     initial_board(Board),
     display_game(Board, '*'), !,
-    game_loop(Board, 'C1', 'C1'),
-    nl,write('returned'),nl.
+    game_loop(Board, 'C1', 'C1').
 
 readInputBotDifficulty(1, 2) :-
     initial_board(Board),
     display_game(Board, '*'), !,
-    game_loop(Board, 'C1', 'C2'),
-    nl,write('returned'),nl.
+    game_loop(Board, 'C1', 'C2').
 
 readInputBotDifficulty(2, 1) :-
     initial_board(Board),
     display_game(Board, '*'), !,
-    game_loop(Board, 'C2', 'C1'),
-    nl,write('returned'),nl.
+    game_loop(Board, 'C2', 'C1').
 
 readInputBotDifficulty(2, 2) :-
     initial_board(Board),
     display_game(Board, '*'), !,
-    game_loop(Board, 'C2', 'C2'),
-    nl,write('returned'),nl.
+    game_loop(Board, 'C2', 'C2').
 
 readInputBotDifficulty(_Input) :-
-	write('\nError: invalid input.\n\n'),
+	write('\nError: invalid input2.\n\n'),
 	mainMenu.
 
 printMainMenu :- nl,
