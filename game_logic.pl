@@ -184,7 +184,8 @@ display('P', Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :
 /*When the Player is a simple bot and it has friends to jump over, after jumping over a friend, it jumps over the friend.*/
 display('C1', Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :-
     check_jump(OldLetter-OldNumber-NewLetter-NewNumber),
-    has_friends(Board, Player, NewLetter-NewNumber, 1), !,
+    random(1, 2, Int),
+    has_friends(Board, Player, NewLetter-NewNumber, Int), !,
     display_game(Board, Player), 
     check_pawns(Board, Player, [NewLetter-NewNumber], _, [], _, [], Friends, []),
     delete(Friends, NewLetter-NewNumber-OldLetter-OldNumber, List),
