@@ -4,6 +4,9 @@ players_pieces('.', 2).
 players_pieces('*', 3).
 players_pieces('*', 4).
 
+knight('.', 1).
+knight('*', 4).
+
 enemy('.', '*').
 enemy('*', '.').
 

@@ -16,9 +16,10 @@ has_enemies(Board, Player, LCell-NCell) :-
     length(Enemies, Len), Len>0.
 
 /*Function to check if Player still has friends pawns to jump over if it jumped over one already.*/
-has_friends(Board, Player, LCell-NCell) :- 
+has_friends(Board, Player, LCell-NCell, Length) :- 
+    \+ has_enemies(Board, Player, LCell-NCell),
     check_pawns(Board, Player, [LCell-NCell], _, [], _, [], Friends, []),
-    length(Friends, Len), Len>1.
+    length(Friends, Len), Len>Length.
 
 /*Function that returns the list of valid moves (ListOfMoves) based on the other 3 lists of possible movements separated into 3 categories:
 ListOfMoves - direct movements, ListOfEnemies - jumps over enemies, ListOfFriends, jumps over friends.*/
@@ -61,7 +62,7 @@ move(Letter-Number-NewLetter-NewNumber, TypeOfPlayer, Player, Board, NewBoard) :
     display(TypeOfPlayer, Player, Letter-Number-NewLetter-NewNumber, Board2, NewBoard).
 
 /*When the movement can't be made there's a new try.*/
-move(_, TypeOfPlayer, Player, Board, NewBoard):- write('Can\'t move. Try again.'), 
+move(Move, TypeOfPlayer, Player, Board, NewBoard):- write('Can\'t perform move: '), write(Move), write('. Try again.'), 
     players_turn(Board, TypeOfPlayer, Player, NewBoard).
 
 /*Function that determines whether the end of game was achieved.
@@ -139,44 +140,72 @@ computing.*/
 players_turn(Board, TypeOfPlayer, Player, NewBoard) :- TypeOfPlayer = 'C2', !, 
     choose_move(2, Player, Board, NewBoard).
 
-/*Function that decides whether or not the player has to play again (when the pawn jumps over an enemy and has to jump again).
-If the player is a intelligent bot, the game is displayed on another function.*/
+/* display(TypeOfPlayer, Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard)
+Function that decides whether or not the player has to play again (when the pawn jumps over an enemy and has to jump again).*/
+/*If the player is a intelligent bot, the game is displayed on another function.*/
 display('C2', Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :- 
     check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard), !.
+display('C2', _, _, Board, NewBoard) :- NewBoard = Board.
 
-/*Function that decides whether or not the player has to play again (when the pawn jumps over an enemy and has to jump again).
-If the player is a simple bot or a player, the game is displayed.*/
+/*If the player is a simple bot or a player, and the pawn still has enemies to jump over, after jumping over an enemy, it does so.*/
 display(TypeOfPlayer, Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :- 
     check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, Board2), 
     has_enemies(Board2, Player, NewLetter-NewNumber), !,
     display_game(Board2, Player), 
     players_turn(Board2, TypeOfPlayer, Player, NewBoard).
+
+/*If the player is human and the pawn is a knight that has jumped over an enemy and has friends to jump over, the function asks if
+the player wants to jump and to which cell.*/
+display('P', Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :- 
+    check_if_knight(Board, NewLetter-NewNumber, Player),
+    check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, _Board2),
+    has_friends(Board, Player, NewLetter-NewNumber, 0), !,
+    readInputJumpStay(Input), !, analyze_input(Board, Player, Input, NewBoard, OldLetter-OldNumber-NewLetter-NewNumber).
+
+/*If the player has jumped over an enemy and doesn't have other enemies/friends to jump over, the game continues in the game loop.*/
 display(_, Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :- 
     check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard), !.
 
+/*If the pawn is a knight that has jumped over a friend and still has enemies to jump over, it does so.*/
+display(TypeOfPlayer, Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :- 
+    check_if_knight(Board, NewLetter-NewNumber, Player),
+    check_jump(OldLetter-OldNumber-NewLetter-NewNumber),
+    has_enemies(Board, Player, NewLetter-NewNumber), !,
+    display_game(Board, Player), 
+    players_turn(Board, TypeOfPlayer, Player, NewBoard).
+
+/*If the player is human and the pawn has jumped over a friend and still has other friends to jump over, the function asks the player if
+he wants to jump and asks them for the cell to jump to.*/
 display('P', Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :-
     check_jump(OldLetter-OldNumber-NewLetter-NewNumber),
-    has_friends(Board, Player, NewLetter-NewNumber), !,
+    has_friends(Board, Player, NewLetter-NewNumber, 1), !,
     readInputJumpStay(Input), !, analyze_input(Board, Player, Input, NewBoard, OldLetter-OldNumber-NewLetter-NewNumber).
 
-/*When the Player is a Computer and it has friends to jump over, after jumping over a friend, it jumps over the friend.*/
+/*When the Player is a simple bot and it has friends to jump over, after jumping over a friend, it jumps over the friend.*/
 display('C1', Player, OldLetter-OldNumber-NewLetter-NewNumber, Board, NewBoard) :-
     check_jump(OldLetter-OldNumber-NewLetter-NewNumber),
-    has_friends(Board, Player, NewLetter-NewNumber), !,
+    has_friends(Board, Player, NewLetter-NewNumber, 1), !,
     display_game(Board, Player), 
     check_pawns(Board, Player, [NewLetter-NewNumber], _, [], _, [], Friends, []),
     delete(Friends, NewLetter-NewNumber-OldLetter-OldNumber, List),
     nth0(0, List, Move),
     move(Move, 'C1', Player, Board, NewBoard).
 
+/*In case none of the options above happen, the returned board will be the same as the one received as argument.*/
 display(_, _, _, Board, NewBoard):- NewBoard=Board.
 
+/*Function that receives a board, a cell and a player and checks if the symbol that is on the cell is one of the player's knights.*/
+check_if_knight(Board, NewLetter-NewNumber, Player) :- check_board(Board, Symbol, NewLetter-NewNumber), !, knight(Player, Symbol).
+
+/*check_jump(OldCell, NewCell)
+Function that checks whether there is a jump between the cells received as arguments.*/
 check_jump(_-OldN-_-NewN) :- NewN is OldN+2.
 check_jump(_-OldN-_-NewN) :- NewN is OldN-2.
 check_jump(OldL-_-NewL-_) :- char_code(OldL, N1), char_code(NewL, N2), N2 is N1+2.
 check_jump(OldL-_-NewL-_) :- char_code(OldL, N1), char_code(NewL, N2), N2 is N1-2.
 
-/*Function that checks if pawn has jumped over enemy by checking if it jumped more than one cell and if the cell it jumped over was an enemy.*/
+/*Function that checks if pawn has jumped over enemy by checking if it jumped more than one cell and if the cell it jumped over was an enemy.
+It returns a Board with the enemy that was jumped over deleted.*/
 /*Diagonally up-left*/
 check_jump_over_enemy(Player, Letter-Number-NewLetter-NewNumber, Board, NewBoard) :-
     Num is Number-NewNumber, char_code(Letter, AsciiLetter), char_code(NewLetter, AsciiNewLetter),

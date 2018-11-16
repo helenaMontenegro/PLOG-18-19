@@ -25,19 +25,50 @@ check_enemies_c2(Player, OldLetter-OldNumber-NewLetter-NewNumber, InitialBoard, 
 (NewBoard is the same as FinalBoard but originated after checking if there were enemies deleted from the board)
 Function that checks if the moving pawn has jumped over enemies in order to check if there are other enemies to jump over, 
 resulting in the current player playing again. If there was no jump over enemy, the FinalBoard is returned.*/
-check_if_same_turn(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board2, SBoard, NewBoard) :-
+check_if_same_turn(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board2, SBoard, NewBoard) :- 
     check_jump_over_enemy(Player, OldLetter-OldNumber-NewLetter-NewNumber, Board2, _), !,
-    c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard).
+    c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard, 0).
+check_if_same_turn(Player, OldLetter-OldNumber-NewLetter-NewNumber, _, SBoard, NewBoard) :- 
+    check_if_knight_jumped(SBoard, OldLetter-OldNumber-NewLetter-NewNumber, Player), !,
+    c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard, 1).
+check_if_same_turn(Player, OldLetter-OldNumber-NewLetter-NewNumber, _, SBoard, NewBoard) :-
+    check_jump(OldLetter-OldNumber-NewLetter-NewNumber), !,
+    c_friends(SBoard, Player, NewLetter-NewNumber, NewBoard, 1).
 check_if_same_turn(_, _, _, SBoard, NewBoard) :- NewBoard=SBoard.
 
 /*c_enemies(BoardAfterRound1, Player, Cell, NewBoard)
 Function that calls the current player's turn again, after checking if it's, in fact, it's turn. It returns the NewBoard generated from
 that turn and receives the current board (BoardAfterRound1), the Player and the Cell where the pawn that just moved is.*/
-c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard):-
+c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard, _):-
     has_enemies(SBoard, Player, NewLetter-NewNumber), !,
     display_game(SBoard, Player), 
     players_turn(SBoard, 'C2', Player, NewBoard).
-c_enemies(SBoard, _, _, NewBoard):- 
+c_enemies(SBoard, Player, NewLetter-NewNumber, NewBoard, OverEnemies) :- 
+    check_if_knight(SBoard, NewLetter-NewNumber, Player),!,
+    c_friends(SBoard, Player, NewLetter-NewNumber, NewBoard, OverEnemies).
+c_enemies(SBoard, _, _, NewBoard, _) :- 
+    NewBoard=SBoard.
+
+/*Function that checks if the pawn located in cell NewLetter-NewNumber is a knight who jumped.*/
+check_if_knight_jumped(SBoard, OldLetter-OldNumber-NewLetter-NewNumber, Player) :- 
+    check_if_knight(SBoard, NewLetter-NewNumber, Player), !, 
+    check_jump(OldLetter-OldNumber-NewLetter-NewNumber).
+
+/*c_enemies(BoardAfterRound1, Player, Cell, NewBoard, Len)
+Function that calls the current player's turn again, after checking if it's, in fact, it's turn, in the case the most recently used pawn has
+friends to jump over. It returns the NewBoard generated from that turn and receives the current board (BoardAfterRound1), 
+the Player and the Cell where the pawn that just moved is. Len is either 0 or 1. If Len=0, the pawn is a knight who jumped over an enemy
+and the program checks if there are any movements to jump over a friend. If Len=1, the pawn jumped over a friend, so the program checks 
+if there are any friends other than that one, to jump over.*/
+c_friends(SBoard, Player, NewLetter-NewNumber, NewBoard, Len):-
+    has_friends(SBoard, Player, NewLetter-NewNumber, Len), !,
+    display_game(SBoard, Player), 
+    check_pawns(SBoard, Player, [NewLetter-NewNumber], _, [], _, [], Friends, []),
+    generate_boards_friends(SBoard, Player, Friends, ListOfBoards),
+    check_value(ListOfBoards, Board2, _AuxBoard, _BestValue, -100, Counter, 0, 0),
+    nth0(Counter, Friends, Move),
+    check_enemies_c2(Player, Move, SBoard, Board2, NewBoard).
+c_friends(SBoard, _, _, NewBoard, _):- 
     NewBoard=SBoard.
 
 /*Function that evaluates a board. It receives the player and the board to evaluate and returns a value.*/
@@ -46,6 +77,12 @@ value(Board, Player, Value) :- get_pawns(Board, Player, ListOfPawns),
     distance_pawns2(Player, ListOfPawns, AverageDistance, 0, 0),
     check_enemy_adjacent_recursive(Player, Board, ListOfPawns, V),
     Value is (12-AverageDistance)*8.3*0.5 + (12-BestDistance)*8.3*0.5+V.
+
+value_friends(Board, Player, Value) :- get_pawns(Board, Player, ListOfPawns), 
+    distance_pawns(Player, _BestPawn, _Aux2, 12, BestDistance, ListOfPawns),
+    distance_pawns2(Player, ListOfPawns, AverageDistance, 0, 0),
+    check_enemy_adjacent_recursive(Player, Board, ListOfPawns, V),
+    Value is (12-AverageDistance)*8.3*0.5 + (12-BestDistance)*8.3*0.5-V.
 
 /*Function that checks if there are enemies in adjacent cells to the Player's pawns, in order to aid in the evaluation function.*/
 check_enemy_adjacent_recursive(_, _, [], Value) :- Value is 0.
@@ -95,6 +132,7 @@ distance_pawns(Player, BestPawn, BestPawnBefore, BestDistanceBefore, BestDistanc
     save_best_distance(BestDistanceBefore, NewBestDistance, Distance, NewBestPawn,BestPawnBefore, CellLetter-CellNumber),
     distance_pawns(Player, BestPawn, NewBestPawn, NewBestDistance, BestDistance, T).
 
+/*Function that calculates the average distance of the Player's pawns to the enemy's castle.*/
 distance_pawns2(_, [], AverageDistance, Aux, Counter) :- AverageDistance is Aux/Counter.
 distance_pawns2(Player, [CellLetter-CellNumber|T], AverageDistance, Aux, Counter) :- 
     enemy(Player, Opponent),
@@ -123,6 +161,13 @@ generate_boards(Board, Player, [H|T], [H1|T1]):-
     value(NewBoard, Player, Value), !,
     H1 = NewBoard-Value,
     generate_boards(Board, Player, T, T1).
+
+generate_boards_friends(_, _, [], []).
+generate_boards_friends(Board, Player, [H|T], [H1|T1]):- 
+    move(H, 'C2', Player, Board, NewBoard),
+    value_friends(NewBoard, Player, Value), !,
+    H1 = NewBoard-Value, 
+    generate_boards_friends(Board, Player, T, T1).
 
 /* check_value(ListOfBoards, BestBoard, AuxBoard, BestValue, AuxValue, Counter, AuxCounter, AuxCounter2)
 Function that selects the best BestBoard, which has the highest value (BestValue). It needs a Counter to know which move originated the board
