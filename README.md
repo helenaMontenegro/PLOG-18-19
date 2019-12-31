@@ -18,6 +18,8 @@ This is an example of how the interface looks like:
 
 ![Cam Image](https://github.com/helenaMontenegro/PLOG-18-19/blob/master/docs/Cam1.JPG)
 
+A 3D interface for this game was implemented for another curricular unity (LAIG) and it is available [here](https://github.com/helenaMontenegro/LAIG-18_19).
+
 ## Chess Loop Puzzles
 
 The objective of this project was to implement a program to solve a decision problem using restrictions, where the decision problem is Chess Loop Puzzles. The objective of Chess Loop Puzzles is to position different types of chess pieces in a board with different dimensions so that each piece attacks, with its characteristic movement, only a piece of a different type, forming a loop.
